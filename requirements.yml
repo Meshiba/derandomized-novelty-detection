@@ -1,0 +1,19 @@
+name: d-rand-conformal
+channels:
+- pytorch
+- defaults
+- conda-forge
+dependencies:
+- python>=3.5
+- pytorch
+- graphviz
+- matplotlib
+- numpy
+- scikit-learn
+- scikit-image
+- scipy
+- torchvision
+- tqdm
+- seaborn
+- pandas
+- click
