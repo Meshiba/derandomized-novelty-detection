@@ -68,33 +68,8 @@ def BH(pvalues, level):
     return pvalues_sort_ind[:nb_rej], threshold
 
 
-def adaptiveEmpBH(null_statistics, test_statistics, level, correction_type, storey_threshold=0.5):
-    pvalues = np.array([compute_pvalue(x, null_statistics) for x in test_statistics])
-
-    if correction_type == "storey": 
-        null_prop= storey_estimator(pvalues=pvalues, threshold=storey_threshold)
-    elif correction_type == "quantile":
-        null_prop= quantile_estimator(pvalues=pvalues, k0=len(pvalues)//2)
-    else:
-        raise ValueError("correction_type is mis-specified")
-
-    lvl_corr = level/null_prop
- 
-    return BH(pvalues=pvalues, level=lvl_corr), pvalues
-
-
 def compute_pvalue(test_statistic, null_statistics):
     return (1 + np.sum(null_statistics >= test_statistic)) / (len(null_statistics)+1)
-
-
-def storey_estimator(pvalues, threshold): 
-    return (1 + np.sum(pvalues >= threshold))/ (len(pvalues)*(1-threshold)) 
-
-
-def quantile_estimator(pvalues, k0):  # eg k0=m/2
-    m = len(pvalues)
-    pvalues_sorted = np.sort(pvalues)
-    return (m-k0+1)/ (m*(1-pvalues_sorted[k0]))
 
 
 def eBH(evalues, level):
@@ -139,10 +114,14 @@ def compute_threshold(test_statistics, null_statistics, level):
             V -= 1
         else:
             K -= 1
-        fdp = (V + 1) * m / ((n + 1) * K) if K else 1
+        fdp = (V * m) / (n * K) if K else 1
 
-    test_statistics_sort_ind = np.argsort(-test_statistics)
-    return test_statistics[test_statistics_sort_ind[K-1]]
+    mixed_statistics_sort_ind = np.argsort(-mixed_statistics)
+    if fdp > level:
+        threshold = mixed_statistics[mixed_statistics_sort_ind[0]] + 1
+    else:
+        threshold = mixed_statistics[mixed_statistics_sort_ind[l-1]]
+    return threshold
 
 
 def get_weight(test_scores, scores_null, weight_metric, trim_prec=0.1):
@@ -164,3 +143,48 @@ def get_weight(test_scores, scores_null, weight_metric, trim_prec=0.1):
     else:
         raise ValueError(f'The following weight metric is not supported - {weight_metric}')
 
+
+def calibrator_p_to_e(pvalues, calibrator_type, null_s, test_s, r):
+    if calibrator_type == 'Shafer':
+        # 1/sqrt(p) - 1
+        evalues = (1 / np.sqrt(pvalues)) - 1
+        return evalues
+    elif calibrator_type == 'VS':
+        safe_pvalues = pvalues + (pvalues == 1).astype(float)
+        evalues = (pvalues <= np.exp(-1)) * -1 * np.exp(-1) / (pvalues*np.log(safe_pvalues)) + (pvalues > np.exp(-1))
+        return evalues
+    elif calibrator_type == 'soft-rank':
+        cal_min = np.min(null_s)
+        cal_max = np.max(null_s)
+        tmp_w_min = np.concatenate((test_s.reshape((-1, 1)), np.ones_like(test_s.reshape((-1, 1)))*cal_min), axis=-1)
+        tmp_w_max = np.concatenate((test_s.reshape((-1, 1)), np.ones_like(test_s.reshape((-1, 1)))*cal_max), axis=-1)
+        L_min = np.min(tmp_w_min, axis=-1).reshape((-1, 1))
+        L_max = np.max(tmp_w_max, axis=-1).reshape((-1, 1))
+        # normalize statistics values
+        test_stats = np.divide((test_s.reshape((-1, 1)) - L_min), (L_max - L_min))  # (n_test,)
+        cal_stats = np.divide((null_s.reshape((1, -1)) - L_min), (L_max - L_min))  # (n_test, n_cal)
+        # Note: min value supposed to be 0
+        cal_min = np.min(cal_stats, axis=-1).reshape((-1, 1))  # (n_test,)
+        tmp = np.concatenate((test_stats.reshape((-1, 1)), cal_min), axis=-1)
+        L_min = np.min(tmp, axis=-1).reshape((-1, 1))  # (n_test,)
+        assert (L_min == np.zeros_like(L_min)).all(), "Error: after normalize, L_min is not zeros."
+        if r == 0:
+            R_values = test_stats.reshape((-1, 1)) - L_min
+            R_cal_values = cal_stats - L_min
+        else:
+            R_values = (np.exp(r*test_stats.reshape((-1, 1))) - np.exp(r*L_min)) / r
+            R_cal_values = (np.exp(r*cal_stats) - np.exp(r*L_min)) / r
+        evalues = (1 + null_s.shape[0]) * R_values / (np.sum(R_cal_values, axis=-1).reshape((-1,1)) + R_values)
+        return evalues.reshape((-1,))
+    elif calibrator_type == 'integral':
+        safe_pvalues = pvalues + (pvalues == 1).astype(float)
+        numerator = 1 - pvalues + pvalues*np.log(pvalues)
+        demon = pvalues * np.power(-1 * np.log(safe_pvalues), 2)
+        evalues = (numerator / demon) * (pvalues != 1) + 0.5 * (pvalues == 1)
+        return evalues
+    else:
+        raise ValueError(f'The following calibrator is not supported - {calibrator_type}')
+
+
+def compute_all_pvalue(test_statistic, null_statistics):
+    return (1 + np.sum(null_statistics.reshape((1, -1)) >= test_statistic.reshape((-1, 1)), axis=1)) / (len(null_statistics)+1)

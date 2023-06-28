@@ -1,6 +1,7 @@
 import torch
 import random
 from sklearn.ensemble import RandomForestClassifier, IsolationForest
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import OneClassSVM
 from sklearn.datasets import fetch_openml
 from datasets import *
@@ -8,13 +9,14 @@ from datasets import *
 
 def get_run_description(args, no_seed=False):
     file_name = args.model
-    # correction description
-    if args.correction_type is not None:
-        file_name = args.correction_type + '_' + file_name
     # e-value description
-    if args.n_e_value > 0:
+    if args.n_e_value > 0 and 'E_value' in args.algorithm:
         file_name = args.algorithm + '_at_' + list_to_str(args.alpha_t) + '_' + args.agg_alpha_t + '_n_' +\
                     str(args.n_e_value) + '_w_' + str(args.weight_metric) + '_' + file_name
+    elif 'Calibrator' in args.algorithm:
+        file_name = args.algorithm + '_t_' + args.calibrator_type + '_n_' + str(args.n_e_value) + '_' + file_name
+        if args.calibrator_type == 'soft-rank':
+            file_name += '_r_' + str(args.soft_rank_r)
     # model description
     if args.model == 'IF':
         file_name += '_e_' + str(args.n_estimators) + '_s_' + str(args.max_samples)
@@ -57,6 +59,8 @@ def get_model(args, **params):
                                max_samples=args.max_samples)
     elif args.model == 'OC-SVM':
         return OneClassSVM(kernel=args.kernel_svm)
+    elif args.model == 'LogisticRegression':
+        return LogisticRegression()
     else:
         raise ValueError(f'the following model is not supported - {args.model}')
 

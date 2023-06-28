@@ -8,9 +8,11 @@
 import numpy as np
 from functools import reduce
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import OneClassSVM
 
-from algo import BH, EmpBH, adaptiveEmpBH, compute_evalue, compute_threshold, eBH, quantile_estimator, storey_estimator\
-                 , compute_pvalue, get_weight
+from algo import BH, EmpBH, compute_evalue, compute_threshold, eBH, \
+                 compute_pvalue, get_weight, calibrator_p_to_e, compute_all_pvalue
 
 
 class AdaDetectBase(object):
@@ -19,14 +21,9 @@ class AdaDetectBase(object):
 
     """
 
-    def __init__(self, correction_type=None, storey_threshold=0.5):
-        """
-        correction_type: if 'storey'/'quantile', uses the adaptive AdaDetect procedure with storey/quantile correction
-        """
+    def __init__(self):
         self.null_statistics = None
         self.test_statistics = None 
-        self.correction_type = correction_type
-        self.storey_threshold = storey_threshold
 
     def fit(self, x, level, xnull):
         """
@@ -51,20 +48,16 @@ class AdaDetectBase(object):
         Return: rejection set of AdaDetect with scoring function g learned from <x> and <xnull> as per .fit(). 
         """ 
         self.fit(x, level, xnull)
-        if self.correction_type is not None:
-            return adaptiveEmpBH(self.null_statistics, self.test_statistics, level=level,
-                                 correction_type=self.correction_type, storey_threshold=self.storey_threshold)
-        else: 
-            return (EmpBH(self.null_statistics, self.test_statistics, level=level), None,
-                    None), None
+        return (EmpBH(self.null_statistics, self.test_statistics, level=level), None,
+                None), None, self.null_statistics, self.test_statistics
 
 
 class AdaDetectERM(AdaDetectBase):
     """
     AdaDetect procedure where the scoring function is learned by an ERM approach. 
     """
-    def __init__(self, scoring_fn, split_size=0.5, correction_type=None, storey_threshold=0.5, **kwargs):
-        AdaDetectBase.__init__(self, correction_type, storey_threshold)
+    def __init__(self, scoring_fn, split_size=0.5, **kwargs):
+        AdaDetectBase.__init__(self)
         """
         scoring_fn: A class (estimator) that must have a .fit() and a .predict_proba() or .decision_function() method, 
         e.g. sklearn's LogisticRegression() 
@@ -118,11 +111,10 @@ class AdaDetectERM(AdaDetectBase):
 
 # ---------------------------------------------------------------------------------------
 class E_value_AdaDetectERM(AdaDetectERM):
-    def __init__(self, scoring_fn, split_size=0.5, correction_type=None, storey_threshold=0.5, n_repetitions=10,
+    def __init__(self, scoring_fn, split_size=0.5, n_repetitions=10,
                  alpha_t=[0.1], agg_alpha_t=np.squeeze, weight_metric='uniform',
-                 random_params=False, models_params=[], **kwargs):
-        AdaDetectERM.__init__(self, scoring_fn=scoring_fn, split_size=split_size, correction_type=correction_type,
-                              storey_threshold=storey_threshold)
+                 random_params=False, models_params=[], model_name='', **kwargs):
+        AdaDetectERM.__init__(self, scoring_fn=scoring_fn, split_size=split_size)
         self.n_repetitions = n_repetitions
         self.alpha_t = alpha_t
         self.agg_alpha_t = agg_alpha_t
@@ -130,8 +122,7 @@ class E_value_AdaDetectERM(AdaDetectERM):
         self.random_params = random_params
         self.all_weights = []
         self.models_params = models_params
-        if correction_type is not None:
-            raise ValueError('Correction with E-AdaDetect is not supported.')
+        self.model_name = model_name
 
     def apply(self, x, level, xnull):
         """
@@ -144,13 +135,19 @@ class E_value_AdaDetectERM(AdaDetectERM):
         ths = []
         evalues_ = np.zeros(x.shape[0])
         sum_weights = 0
+        cal_scores, test_scores = None, None
         for i in range(self.n_repetitions):
             xnull_ = np.random.permutation(xnull)
             if i > 0 and self.random_params:  # currently implemented only for RF model
-                n_estimators = 100
-                max_depth = self.models_params[i]
-                curr_model = RandomForestClassifier(max_depth=max_depth, n_estimators=n_estimators)
-                self.scoring_fn = curr_model
+                if self.model_name == 'RF':
+                    n_estimators = 100
+                    max_depth = self.models_params[i]
+                    curr_model = RandomForestClassifier(max_depth=max_depth, n_estimators=n_estimators)
+                    self.scoring_fn = curr_model
+                elif self.model_name == 'LogisticRegression':
+                    reg_strength, tol = self.models_params[i]
+                    curr_model = LogisticRegression(C=reg_strength, tol=tol)
+                    self.scoring_fn = curr_model
             self.fit(x, level, xnull_)
             evalues_t_all = None
             for i, alpha_t in enumerate(self.alpha_t):
@@ -159,6 +156,14 @@ class E_value_AdaDetectERM(AdaDetectERM):
                 evalues_t = compute_evalue(self.test_statistics, self.null_statistics, t)
                 evalues_t_all = np.concatenate([evalues_t_all, evalues_t.reshape((-1, 1))], axis=1) if i != 0 \
                     else evalues_t.reshape((-1, 1))
+            if cal_scores is None:
+                cal_scores = self.null_statistics.reshape((1, -1))
+            else:
+                cal_scores = np.concatenate([cal_scores, self.null_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
+            if test_scores is None:
+                test_scores = self.test_statistics.reshape((1, -1))
+            else:
+                test_scores = np.concatenate([test_scores, self.test_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
             # aggregate evalues for different alpha_t values
             evalues = self.agg_alpha_t(evalues_t_all)
             # compute weight
@@ -168,7 +173,59 @@ class E_value_AdaDetectERM(AdaDetectERM):
             self.all_weights.append(curr_w)
         evalues_ /= sum_weights
         # apply eBH
-        return (*eBH(evalues_, level), ths), evalues_
+        return (*eBH(evalues_, level), ths), evalues_, cal_scores, test_scores
+
+
+class CalibratorAdaDetectERM(AdaDetectERM):
+    def __init__(self, scoring_fn, split_size=0.5, n_repetitions=10,
+                 random_params=False, models_params=[], calibrator_type='Shafer', r=0, weight_metric='uniform', **kwargs):
+        AdaDetectERM.__init__(self, scoring_fn=scoring_fn, split_size=split_size)
+        self.n_repetitions = n_repetitions
+        self.weight_metric = weight_metric
+        self.calibrator_type = calibrator_type
+        self.r = r
+        self.random_params = random_params
+        self.all_weights = []
+        self.models_params = models_params
+
+    def apply(self, x, level, xnull):
+        """
+        x: test sample
+        xnull: NTS
+        level: nominal level
+
+        Return: rejection set
+        """
+        evalues_ = np.zeros(x.shape[0])
+        sum_weights = 0
+        cal_scores, test_scores = None, None
+        for i in range(self.n_repetitions):
+            xnull_ = np.random.permutation(xnull)
+            if i > 0 and self.random_params:  # currently implemented only for RF model
+                n_estimators = 100
+                max_depth = self.models_params[i]
+                curr_model = RandomForestClassifier(max_depth=max_depth, n_estimators=n_estimators)
+                self.scoring_fn = curr_model
+            self.fit(x, level, xnull_)
+            pvalues = compute_all_pvalue(self.test_statistics, self.null_statistics)
+            evalues = calibrator_p_to_e(pvalues, self.calibrator_type, self.null_statistics, self.test_statistics, self.r)
+            if cal_scores is None:
+                cal_scores = self.null_statistics.reshape((1, -1))
+            else:
+                cal_scores = np.concatenate([cal_scores, self.null_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
+            if test_scores is None:
+                test_scores = self.test_statistics.reshape((1, -1))
+            else:
+                test_scores = np.concatenate([test_scores, self.test_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
+            # compute weight
+            curr_w = get_weight(self.test_statistics, self.null_statistics, self.weight_metric)
+            evalues_ += curr_w * evalues
+            sum_weights += curr_w
+            self.all_weights.append(curr_w)
+        evalues_ /= sum_weights
+        # apply eBH
+        return (*eBH(evalues_, level), None), evalues_, cal_scores, test_scores
+
 
 
 class ConformalOCC(object):
@@ -176,8 +233,7 @@ class ConformalOCC(object):
     Conformal OCC procedure
     """
 
-    def __init__(self, scoring_fn, split_size=0.5, correction_type=None, storey_threshold=0.5,
-                 **kwargs):
+    def __init__(self, scoring_fn, split_size=0.5, **kwargs):
         """
         scoring_fn: A class (estimator) that must have a .fit() and a .predict_proba() or .decision_function() method,
         e.g. sklearn's LogisticRegression()
@@ -191,8 +247,6 @@ class ConformalOCC(object):
 
         self.null_statistics = None
         self.test_statistics = None
-        self.correction_type = correction_type
-        self.storey_threshold = storey_threshold
         self.scoring_fn = scoring_fn
         self.split_size = split_size
 
@@ -236,12 +290,8 @@ class ConformalOCC(object):
         Return: rejection set of AdaDetect with scoring function g learned from <x> and <xnull> as per .fit().
         """
         self.fit(x, level, xnull)
-        if self.correction_type is not None:
-            return adaptiveEmpBH(self.null_statistics, self.test_statistics, level=level,
-                                 correction_type=self.correction_type, storey_threshold=self.storey_threshold)
-        else:
-            pvalues = np.array([compute_pvalue(x, self.null_statistics) for x in self.test_statistics])
-            return (*BH(pvalues, level=level), None), pvalues
+        pvalues = np.array([compute_pvalue(x, self.null_statistics) for x in self.test_statistics])
+        return (*BH(pvalues, level=level), None), pvalues, self.null_statistics, self.test_statistics
 
 
 class E_value_ConformalOCC(ConformalOCC):
@@ -249,11 +299,10 @@ class E_value_ConformalOCC(ConformalOCC):
     Conformal OCC procedure
     """
 
-    def __init__(self, scoring_fn, split_size=0.5, correction_type=None, storey_threshold=0.5, n_repetitions=10,
+    def __init__(self, scoring_fn, split_size=0.5, n_repetitions=10,
                  alpha_t=[0.1], agg_alpha_t=np.squeeze, weight_metric='uniform',
-                 random_params=False, models_params=[], **kwargs):
-        ConformalOCC.__init__(self, scoring_fn=scoring_fn, split_size=split_size, correction_type=correction_type,
-                              storey_threshold=storey_threshold)
+                 random_params=False, models_params=[], model_name='', **kwargs):
+        ConformalOCC.__init__(self, scoring_fn=scoring_fn, split_size=split_size)
         self.n_repetitions = n_repetitions
         self.alpha_t = alpha_t
         self.agg_alpha_t = agg_alpha_t
@@ -261,8 +310,7 @@ class E_value_ConformalOCC(ConformalOCC):
         self.random_params = random_params
         self.all_weights = []
         self.models_params = models_params
-        if correction_type is not None:
-            raise ValueError('Correction with E-OC-Conformal is not supported.')
+        self.model_name = model_name
 
     def apply(self, x, level, xnull):
         """
@@ -275,6 +323,7 @@ class E_value_ConformalOCC(ConformalOCC):
         ths = []
         sum_weights = 0
         evalues_ = np.zeros(x.shape[0])
+        cal_scores, test_scores = None, None
         for i in range(self.n_repetitions):
             xnull_ = np.random.permutation(xnull)
             if i > 0 and self.random_params:  # currently implemented only for RF model
@@ -290,6 +339,14 @@ class E_value_ConformalOCC(ConformalOCC):
                 evalues_t = compute_evalue(self.test_statistics, self.null_statistics, t)
                 evalues_t_all = np.concatenate([evalues_t_all, evalues_t.reshape((-1, 1))], axis=1) if i != 0 \
                     else evalues_t.reshape((-1, 1))
+            if cal_scores is None:
+                cal_scores = self.null_statistics.reshape((1, -1))
+            else:
+                cal_scores = np.concatenate([cal_scores, self.null_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
+            if test_scores is None:
+                test_scores = self.test_statistics.reshape((1, -1))
+            else:
+                test_scores = np.concatenate([test_scores, self.test_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
             # aggregate evalues for different alpha_t values
             evalues = self.agg_alpha_t(evalues_t_all)
             # compute weight
@@ -299,4 +356,55 @@ class E_value_ConformalOCC(ConformalOCC):
             self.all_weights.append(curr_w)
         evalues_ /= sum_weights
         # apply eBH
-        return (*eBH(evalues_, level), ths), evalues_
+        return (*eBH(evalues_, level), ths), evalues_, cal_scores, test_scores
+
+
+class CalibratorConformalOCC(ConformalOCC):
+    def __init__(self, scoring_fn, split_size=0.5, n_repetitions=10,
+                 random_params=False, models_params=[], calibrator_type='Shafer', r=0, weight_metric='uniform', **kwargs):
+        ConformalOCC.__init__(self, scoring_fn=scoring_fn, split_size=split_size)
+        self.n_repetitions = n_repetitions
+        self.weight_metric = weight_metric
+        self.calibrator_type = calibrator_type
+        self.r = r
+        self.random_params = random_params
+        self.all_weights = []
+        self.models_params = models_params
+
+    def apply(self, x, level, xnull):
+        """
+        x: test sample
+        xnull: NTS
+        level: nominal level
+
+        Return: rejection set
+        """
+        evalues_ = np.zeros(x.shape[0])
+        sum_weights = 0
+        cal_scores, test_scores = None, None
+        for i in range(self.n_repetitions):
+            xnull_ = np.random.permutation(xnull)
+            if i > 0 and self.random_params:  # currently implemented only for RF model
+                n_estimators = 100
+                max_depth = self.models_params[i]
+                curr_model = RandomForestClassifier(max_depth=max_depth, n_estimators=n_estimators)
+                self.scoring_fn = curr_model
+            self.fit(x, level, xnull_)
+            pvalues = compute_all_pvalue(self.test_statistics, self.null_statistics)
+            evalues = calibrator_p_to_e(pvalues, self.calibrator_type, self.null_statistics, self.test_statistics, self.r)
+            if cal_scores is None:
+                cal_scores = self.null_statistics.reshape((1, -1))
+            else:
+                cal_scores = np.concatenate([cal_scores, self.null_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
+            if test_scores is None:
+                test_scores = self.test_statistics.reshape((1, -1))
+            else:
+                test_scores = np.concatenate([test_scores, self.test_statistics.reshape((1, -1))], axis=0)  # shape (n_repetitions, n_cal)
+            # compute weight
+            curr_w = get_weight(self.test_statistics, self.null_statistics, self.weight_metric)
+            evalues_ += curr_w * evalues
+            sum_weights += curr_w
+            self.all_weights.append(curr_w)
+        evalues_ /= sum_weights
+        # apply eBH
+        return (*eBH(evalues_, level), None), evalues_, cal_scores, test_scores

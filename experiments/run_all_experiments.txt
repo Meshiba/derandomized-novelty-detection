@@ -1,0 +1,129 @@
+################################################
+# Synthetic experiments
+################################################
+
+* Signal amplitude experiment (Figures 2,S1,S4,S5)
+- fixed setting (Figures 2,S4)
+bash exp_signal.sh -o 0.1 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+- different realizations (Figures S1,S5)
+bash exp_signal_df.sh -o 0.1 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+
+
+* Number of iterations experiment (Figures 3,S2,S3)
+- fixed setting (Figures 3,S2)
+bash exp_iteration.sh -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/iteration/n_train_2000_n_cal_1000_n_test_1000/ -n 2000 -c 1000 -p 100
+- different realizations (Figures S3)
+bash exp_iteration_df.sh -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/iteration/n_train_2000_n_cal_1000_n_test_1000/ -n 2000 -c 1000 -p 100
+
+
+* Weight metrics experiment (Figure 4)
+- fixed setting (Figure 4)
+bash exp_weight_signal.sh -o 0.1 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/weights/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+
+
+* Hyper-parameter alpha_bh experiment (Figures S6,S7)
+- different realizations (Figures S6,S7)
+bash exp_alpha_bh_df.sh -o 0.1 -d artificial_gaussian -m 100 -t 1000 -s ./results/no_reuse/synthetic/alpha_bh/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_alpha_bh_df.sh -o 0.5 -d artificial_gaussian -m 100 -t 1000 -s ./results/no_reuse/synthetic/alpha_bh/n_train_2000_n_cal_1000_n_test_1000/test_p_0.5/ -n 2000 -c 1000 -p 100
+
+
+* Calibration-set size experiment compare to p-to-e calibrators (Figure S8)
+- different realizations (Figure S8)
+bash exp_extreme_calib_OC_df.sh -a 0.1 -o 0.1 -d artificial_gaussian -m 100 -t 1000  -s ./results/no_reuse/synthetic/extreme_n_cal/actual_n_train_1000_n_test_1000/test_p_0.1/ -p 100
+bash exp_extreme_calib_calibrator_type_OC_df.sh -a 0.1 -o 0.1 -d artificial_gaussian -b Shafer   -r 1  -m 100 -t 1000 -s ./results/calibrator/Shafer/no_reuse/synthetic/extreme_n_cal/actual_n_train_1000_n_test_1000/test_p_0.1/ -p 100
+bash exp_extreme_calib_calibrator_type_OC_df.sh -a 0.1 -o 0.1 -d artificial_gaussian -b VS       -r 1  -m 100 -t 1000 -s ./results/calibrator/VS/no_reuse/synthetic/extreme_n_cal/actual_n_train_1000_n_test_1000/test_p_0.1/ -p 100
+bash exp_extreme_calib_calibrator_type_OC_df.sh -a 0.1 -o 0.1 -d artificial_gaussian -b integral -r 1  -m 100 -t 1000 -s ./results/calibrator/integral/no_reuse/synthetic/extreme_n_cal/actual_n_train_1000_n_test_1000/test_p_0.1/ -p 100
+
+
+* Hyper-parameter soft-rank experiment (Figures S9,S10)
+- different realizations (Figures S9,S10)
+bash exp_r_df.sh -a 0.1 -o 0.1 -d artificial_gaussian -m 100 -t 1000 -s ./results/calibrator/soft-rank/no_reuse/synthetic/soft_rank_r/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_r_df.sh -a 0.1 -o 0.5 -d artificial_gaussian -m 100 -t 1000 -s ./results/calibrator/soft-rank/no_reuse/synthetic/soft_rank_r/n_train_2000_n_cal_1000_n_test_1000/test_p_0.5/ -n 2000 -c 1000 -p 100
+
+
+* Signal amplitude with varying outliers' proportion (Figures S11,S12,S13)
+- fixed setting (Figures S11)
+bash exp_signal_2.sh -o 0.05 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.05/ -n 2000 -c 1000 -p 100
+bash exp_signal_2.sh -o 0.1  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_signal_2.sh -o 0.2  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.2/ -n 2000 -c 1000 -p 100
+bash exp_signal_2.sh -o 0.3  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.3/ -n 2000 -c 1000 -p 100
+bash exp_signal_2.sh -o 0.4  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.4/ -n 2000 -c 1000 -p 100
+bash exp_signal_2.sh -o 0.5  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.5/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC.sh  -b soft-rank -r 75  -o 0.05 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.05/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC.sh  -b soft-rank -r 75  -o 0.1  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC.sh  -b soft-rank -r 75  -o 0.2  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.2/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC.sh  -b soft-rank -r 75  -o 0.3  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.3/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC.sh  -b soft-rank -r 75  -o 0.4  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.4/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC.sh  -b soft-rank -r 75  -o 0.5  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.5/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada.sh -b soft-rank -r 500 -o 0.05 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.05/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada.sh -b soft-rank -r 500 -o 0.1  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada.sh -b soft-rank -r 500 -o 0.2  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.2/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada.sh -b soft-rank -r 500 -o 0.3  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.3/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada.sh -b soft-rank -r 500 -o 0.4  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.4/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada.sh -b soft-rank -r 500 -o 0.5  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.5/ -n 2000 -c 1000 -p 100
+- different realizations (Figures S12,S13)
+bash exp_signal_2_df.sh -o 0.05 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.05/ -n 2000 -c 1000 -p 100
+bash exp_signal_2_df.sh -o 0.1  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_signal_2_df.sh -o 0.2  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.2/ -n 2000 -c 1000 -p 100
+bash exp_signal_2_df.sh -o 0.3  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.3/ -n 2000 -c 1000 -p 100
+bash exp_signal_2_df.sh -o 0.4  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.4/ -n 2000 -c 1000 -p 100
+bash exp_signal_2_df.sh -o 0.5  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/test_p_0.5/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC_df.sh  -b soft-rank -r 75  -o 0.05 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.05/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC_df.sh  -b soft-rank -r 75  -o 0.1  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC_df.sh  -b soft-rank -r 75  -o 0.2  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.2/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC_df.sh  -b soft-rank -r 75  -o 0.3  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.3/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC_df.sh  -b soft-rank -r 75  -o 0.4  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.4/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_OC_df.sh  -b soft-rank -r 75  -o 0.5  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_75/test_p_0.5/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada_df.sh -b soft-rank -r 500 -o 0.05 -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.05/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada_df.sh -b soft-rank -r 500 -o 0.1  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada_df.sh -b soft-rank -r 500 -o 0.2  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.2/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada_df.sh -b soft-rank -r 500 -o 0.3  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.3/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada_df.sh -b soft-rank -r 500 -o 0.4  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.4/ -n 2000 -c 1000 -p 100
+bash exp_signal_calibrator_type_Ada_df.sh -b soft-rank -r 500 -o 0.5  -d artificial_gaussian -m 100 -t 1000 -a 0.1  -s ./results/calibrator/soft-rank/no_reuse/synthetic/signal_amplitude/n_train_2000_n_cal_1000_n_test_1000/r_500/test_p_0.5/ -n 2000 -c 1000 -p 100
+
+
+* Target FDR level (Figures S14,S15)
+- fixed setting (Figures S14,S15)
+bash exp_alpha.sh -o 0.1  -d artificial_gaussian -m 100 -t 1000  -s ./results/reuse/synthetic/alpha/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/ -n 2000 -c 1000 -p 100
+bash exp_alpha.sh -o 0.5  -d artificial_gaussian -m 100 -t 1000  -s ./results/reuse/synthetic/alpha/n_train_2000_n_cal_1000_n_test_1000/test_p_0.5/ -n 2000 -c 1000 -p 100
+bash exp_alpha_calibrator_type_OC.sh  -o 0.1 -d artificial_gaussian -b soft-rank -r 75    -m 100 -t 1000 -s ./results/calibrator/soft-rank/reuse/synthetic/alpha/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/r_75/ -n 2000 -c 1000 -p 100
+bash exp_alpha_calibrator_type_OC.sh  -o 0.5 -d artificial_gaussian -b soft-rank -r 75    -m 100 -t 1000 -s ./results/calibrator/soft-rank/reuse/synthetic/alpha/n_train_2000_n_cal_1000_n_test_1000/test_p_0.5/r_75/ -n 2000 -c 1000 -p 100
+bash exp_alpha_calibrator_type_Ada.sh -o 0.1 -d artificial_gaussian -b soft-rank -r 500   -m 100 -t 1000 -s ./results/calibrator/soft-rank/reuse/synthetic/alpha/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/r_500/ -n 2000 -c 1000 -p 100
+bash exp_alpha_calibrator_type_Ada.sh -o 0.5 -d artificial_gaussian -b soft-rank -r 500   -m 100 -t 1000 -s ./results/calibrator/soft-rank/reuse/synthetic/alpha/n_train_2000_n_cal_1000_n_test_1000/test_p_0.5/r_500/ -n 2000 -c 1000 -p 100
+
+
+################################################
+# Real-data experiments
+################################################
+
+* Real data with 10% and 40% outliers (Figures S16,S17)
+- fixed setting (Figures S16,S17)
+bash exp_real_data_test_p.sh -d creditcard -t 1000 -a 0.1   -s ./results/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p.sh -d shuttle -t 1000 -a 0.1      -s ./results/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p.sh -d KDDCup99 -t 1000 -a 0.1     -s ./results/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p.sh -d musk -t 1000 -a 0.1         -s ./results/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC.sh -b soft-rank -r 75 -d creditcard -t 1000 -a 0.1     -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC.sh -b soft-rank -r 75 -d shuttle -t 1000 -a 0.1        -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC.sh -b soft-rank -r 75 -d KDDCup99 -t 1000 -a 0.1       -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC.sh -b soft-rank -r 75 -d musk -t 1000 -a 0.1           -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada.sh -b soft-rank -r 500 -d creditcard -t 1000 -a 0.1   -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada.sh -b soft-rank -r 500 -d shuttle -t 1000 -a 0.1      -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada.sh -b soft-rank -r 500 -d KDDCup99 -t 1000 -a 0.1     -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada.sh -b soft-rank -r 500 -d musk -t 1000 -a 0.1         -s ./results/calibrator/soft-rank/reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+
+
+* Real data with varying outliers' proportion (Figures S18, S19)
+- different realizations (Figures S18, S19)
+bash exp_real_data_test_p_df.sh -d creditcard -t 1000 -a 0.1   -s ./results/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_df.sh -d shuttle -t 1000 -a 0.1      -s ./results/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_df.sh -d KDDCup99 -t 1000 -a 0.1     -s ./results/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_df.sh -d musk -t 1000 -a 0.1         -s ./results/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC_df.sh -b soft-rank -r 75 -d creditcard -t 1000 -a 0.1     -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC_df.sh -b soft-rank -r 75 -d shuttle -t 1000 -a 0.1        -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC_df.sh -b soft-rank -r 75 -d KDDCup99 -t 1000 -a 0.1       -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_OC_df.sh -b soft-rank -r 75 -d musk -t 1000 -a 0.1           -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_75/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada_df.sh -b soft-rank -r 500 -d creditcard -t 1000 -a 0.1   -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada_df.sh -b soft-rank -r 500 -d shuttle -t 1000 -a 0.1      -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada_df.sh -b soft-rank -r 500 -d KDDCup99 -t 1000 -a 0.1     -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+bash exp_real_data_test_p_calibrator_type_Ada_df.sh -b soft-rank -r 500 -d musk -t 1000 -a 0.1         -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
+
