@@ -79,7 +79,7 @@ def main(args, save=True, x_test=None, y_test=None, x_null=None):
     models_params, models_params_l_of_dict = [], []
     if args.random_params:
         if args.model == 'RF':
-            models_params = [2, 12, 20, 30, 7, 17, 5, 23, 11, 27]  # randomly sampled once from the range (1,30)
+            models_params = [10, 12, 20, 30, 7, 17, 5, 23, 11, 27]  # randomly sampled once from the range (1,30)
             if args.n_e_value != 10:
                 f = math.ceil(args.n_e_value / 10)
                 models_params = models_params * f
@@ -94,6 +94,19 @@ def main(args, save=True, x_test=None, y_test=None, x_null=None):
                 models_params = models_params[:args.n_e_value]
             for s in models_params:
                 models_params_l_of_dict.append({'C': s})
+        if args.random_params_combined:  # add SVM model
+            models_params_svm = [0.1, 0.001, 0.5, 0.2, 0.03]  # combined
+            if args.n_e_value != 10:
+                f = math.ceil(args.n_e_value / 10)
+                models_params_svm = models_params_svm * f
+                models_params_svm = models_params_svm[:int(args.n_e_value / 2)]  # assume n_e_value is divided by 2
+            idx = int(args.n_e_value / 2)
+            for g in models_params_svm:
+                if idx >= args.n_e_value:
+                    break
+                models_params_l_of_dict[idx] = {'gamma': g}
+                models_params[idx] = g
+                idx += 1
     else:
         models_params_l_of_dict = None
 
@@ -103,6 +116,7 @@ def main(args, save=True, x_test=None, y_test=None, x_null=None):
                                           alpha_t=args.alpha_t, agg_alpha_t=get_agg_method(args.agg_alpha_t),
                                           weight_metric=args.weight_metric,
                                           random_params=args.random_params,
+                                          random_params_combined=args.random_params_combined,
                                           models_params=models_params,
                                           model_name=args.model,
                                           cv_params=models_params_l_of_dict,
@@ -186,7 +200,10 @@ def get_args(parser=None, get_parser=False):
     # model parameters
     parser.add_argument('--random_params', action='store_true', help='Draw random model parameters - only for '
                                                                      'RF/LogisticRegression.')
-    parser.add_argument('--max_depth', default=10, help='RF - The maximum depth of the tree. If None, then nodes are '
+    parser.add_argument('--random_params_combined', action='store_true', help='Combine SVM model in random model '
+                                                                              'parameters experiments to introduce '
+                                                                              'higher variance in models.')
+    parser.add_argument('--max_depth', default=10, type=int, help='RF - The maximum depth of the tree. If None, then nodes are '
                                                         'expanded until all leaves are pure or until all leaves contain'
                                                         ' less than min_samples_split samples.')
     parser.add_argument('--max_samples', default="auto", help='IF - The number of samples to draw from X to train each '

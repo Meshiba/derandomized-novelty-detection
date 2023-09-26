@@ -30,17 +30,17 @@ conda activate d-rand-conformal
 To run a single experiment with the desired parameters, use `main.py`. 
 For example, a single run of *E-AdaDetect* with logistic regression classifier, K=10 (number of train-calibration splits) and signal strength equal to 3.4: 
 ```
-python main.py --save_path ./results/ --model LogisticRegression --algorithm E_value_AdaDetect --n_e_value 10 --alpha 0.1 --n_cal 1000 --n_train 2000 --n_test 1000 --dataset artificial_gaussian --n_features 100 --mu_o 3.4
+python main.py --save_path ./results/ --model LogisticRegression --algorithm E_value_AdaDetectERM --n_e_value 10 --alpha 0.1 --n_cal 1000 --n_train 2000 --n_test 1000 --dataset artificial_gaussian --n_features 100 --mu_o 3.4
 ```
 
 To run an experiment with *M* repetitions (with different seeds), use `wrapper.py`.
 For example, an experiments with 10 repetitions:
 ```
-python wrapper.py --save_path ./results/ --n_seeds 10 --model LogisticRegression --algorithm E_value_AdaDetect --alpha 0.1 --n_cal 1000 --n_train 2000 --n_test 1000 --dataset artificial_gaussian --n_features 100 --mu_o 3.4
+python wrapper.py --save_path ./results/ --n_seeds 10 --model LogisticRegression --algorithm E_value_AdaDetectERM --alpha 0.1 --n_cal 1000 --n_train 2000 --n_test 1000 --dataset artificial_gaussian --n_features 100 --mu_o 3.4
 ```
 Example of experiment with **fixed** test set and null samples:
 ```
-python wrapper.py --save_path ./results/ --n_seeds 10 --sv_exp --reuse_xnull --model LogisticRegression --algorithm E_value_AdaDetect --alpha 0.1 --n_cal 1000 --n_train 2000 --n_test 1000 --dataset artificial_gaussian --n_features 100 --mu_o 3.4
+python wrapper.py --save_path ./results/ --n_seeds 10 --sv_exp --reuse_xnull --model LogisticRegression --algorithm E_value_AdaDetectERM --alpha 0.1 --n_cal 1000 --n_train 2000 --n_test 1000 --dataset artificial_gaussian --n_features 100 --mu_o 3.4
 ```
 
 For more details on command line arguments, please run the following command:

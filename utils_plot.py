@@ -42,7 +42,7 @@ def plot_from_files(file_paths, x, y=[], save_path=None, filter={}, save_name=''
             continue
         if not 'E_value' in result['algorithm'].values[0] and not 'Calibrator' in result['algorithm'].values[0]:
             result['n_e_value'] = 1
-        if weight and (float(result['mu_o'].values[0]) > 3.6 or float(result['mu_o'].values[0]) < 2):
+        if weight and x == 'mu_o' and (float(result['mu_o'].values[0]) > 3.6 or float(result['mu_o'].values[0]) < 2):
             continue
         if x == 'mu_o':
             if 'test_p_0.1' in save_path:

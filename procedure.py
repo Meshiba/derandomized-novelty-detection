@@ -9,7 +9,7 @@ import numpy as np
 from functools import reduce
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import OneClassSVM
+from sklearn.svm import OneClassSVM, SVC
 
 from algo import BH, EmpBH, compute_evalue, compute_threshold, eBH, \
                  compute_pvalue, get_weight, calibrator_p_to_e, compute_all_pvalue
@@ -113,13 +113,14 @@ class AdaDetectERM(AdaDetectBase):
 class E_value_AdaDetectERM(AdaDetectERM):
     def __init__(self, scoring_fn, split_size=0.5, n_repetitions=10,
                  alpha_t=[0.1], agg_alpha_t=np.squeeze, weight_metric='uniform',
-                 random_params=False, models_params=[], model_name='', **kwargs):
+                 random_params=False, random_params_combined=False, models_params=[], model_name='', **kwargs):
         AdaDetectERM.__init__(self, scoring_fn=scoring_fn, split_size=split_size)
         self.n_repetitions = n_repetitions
         self.alpha_t = alpha_t
         self.agg_alpha_t = agg_alpha_t
         self.weight_metric = weight_metric
         self.random_params = random_params
+        self.random_params_combined = random_params_combined
         self.all_weights = []
         self.models_params = models_params
         self.model_name = model_name
@@ -142,11 +143,17 @@ class E_value_AdaDetectERM(AdaDetectERM):
                 if self.model_name == 'RF':
                     n_estimators = 100
                     max_depth = self.models_params[i]
-                    curr_model = RandomForestClassifier(max_depth=max_depth, n_estimators=n_estimators)
+                    if self.random_params_combined and i >= int(self.n_repetitions / 2):
+                        curr_model = SVC(gamma=max_depth)
+                    else:
+                        curr_model = RandomForestClassifier(max_depth=max_depth, n_estimators=n_estimators)
                     self.scoring_fn = curr_model
                 elif self.model_name == 'LogisticRegression':
-                    reg_strength, tol = self.models_params[i]
-                    curr_model = LogisticRegression(C=reg_strength, tol=tol)
+                    reg_strength = self.models_params[i]
+                    if self.random_params_combined and i >= int(self.n_repetitions / 2):
+                        curr_model = SVC(gamma=reg_strength)
+                    else:
+                        curr_model = LogisticRegression(C=reg_strength)
                     self.scoring_fn = curr_model
             self.fit(x, level, xnull_)
             evalues_t_all = None
@@ -326,11 +333,8 @@ class E_value_ConformalOCC(ConformalOCC):
         cal_scores, test_scores = None, None
         for i in range(self.n_repetitions):
             xnull_ = np.random.permutation(xnull)
-            if i > 0 and self.random_params:  # currently implemented only for RF model
-                n_estimators = 100
-                max_depth = self.models_params[i]
-                curr_model = RandomForestClassifier(max_depth=max_depth, n_estimators=n_estimators)
-                self.scoring_fn = curr_model
+            if i > 0 and self.random_params:  # currently implemented only for RF/LR model
+                raise ValueError('Random model parameters is not available for one-class models.')
             self.fit(x, level, xnull_)
             evalues_t_all = None
             for i, alpha_t in enumerate(self.alpha_t):

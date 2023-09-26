@@ -127,3 +127,9 @@ bash exp_real_data_test_p_calibrator_type_Ada_df.sh -b soft-rank -r 500 -d shutt
 bash exp_real_data_test_p_calibrator_type_Ada_df.sh -b soft-rank -r 500 -d KDDCup99 -t 1000 -a 0.1     -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
 bash exp_real_data_test_p_calibrator_type_Ada_df.sh -b soft-rank -r 500 -d musk -t 1000 -a 0.1         -s ./results/calibrator/soft-rank/no_reuse/real_data_test_p/n_train_3000_n_cal_1000_n_test_1000/r_500/  -n 3000 -c 1000 -p 100
 
+* Real data with different weight metrics experiment (Figure 5)
+- fixed setting (Figure 5)
+bash exp_weight_real_data.sh -o 0.1 -d creditcard -t 1000 -a 0.1   -s ./results/reuse/real_data/weights/RF_combined/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/  -n 2000 -c 1000 -p 100
+bash exp_weight_real_data.sh -o 0.1 -d shuttle -t 1000 -a 0.1      -s ./results/reuse/real_data/weights/RF_combined/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/  -n 2000 -c 1000 -p 100
+bash exp_weight_real_data.sh -o 0.1 -d KDDCup99 -t 1000 -a 0.1     -s ./results/reuse/real_data/weights/RF_combined/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/  -n 2000 -c 1000 -p 100
+bash exp_weight_real_data.sh -o 0.1 -d musk -t 1000 -a 0.1         -s ./results/reuse/real_data/weights/RF_combined/n_train_2000_n_cal_1000_n_test_1000/test_p_0.1/  -n 2000 -c 1000 -p 100
