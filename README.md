@@ -5,6 +5,8 @@ This repository contains a Python implementation of the following paper: "Derand
 The repository includes an implementation of the proposed derandomized novelty detection method (*E-AdaDetect* and *E-OC-Conformal*).
 Baseline methods implementation alongside code for synthetic and real data experiments are included in this repository.
 
+The paper is available [here](https://arxiv.org/abs/2302.07294).
+
 ### Abstract
 
 Conformal inference provides a general distribution-free method to rigorously calibrate the output of any machine 
